@@ -34,7 +34,7 @@ class Particle(object):
 
     def force_magneto(self, P2):
         k = si.mu_0 / (4 * si.pi)
-        B = np.cross(P2.vel, P2.r_hat(self)) / (P2._r(self)) ** 2
+        B = k*np.cross(P2.vel, P2.r_hat(self)) / (P2._r(self)) ** 2
         return self.charge * np.cross(self.vel, B)
 
     def force(self, P2):
@@ -61,6 +61,7 @@ class Particle(object):
         self.boundary_cross_check_and_update()
         if self.vel[0] > si.c or self.vel[1] > si.c or self.vel[2] > si.c:
             print("EINSTEIN WAS WRONG")
+            self.vel = self.vel/1e9
 
 
 
@@ -68,7 +69,7 @@ class Electron(Particle):
     def __init__(self, pos, vel, accl):
         super(Electron, self).__init__(pos, vel, accl)
         self.type = "Electron"
-        self.mass = 2e-20#si.m_e
+        self.mass = 2e-26#si.m_e
         self.charge = -1 * si.e
         self.color = "Blue"
         self.__class__.particle_color.append(self.color)
@@ -77,7 +78,7 @@ class Proton(Particle): #more like a positron, the proton mass didnt really do a
     def __init__(self, pos, vel, accl,):
         super(Proton, self).__init__(pos, vel, accl)
         self.type = "Proton"
-        self.mass = 2e-20#si.m_e
+        self.mass = 2e-26#si.m_e
         self.charge = si.e
         self.color = "Red"
         self.__class__.particle_color.append(self.color)
@@ -115,9 +116,9 @@ class Simulation():#AB
 
 def main():
     particle_array=[]
-    particle_array.append(Proton(np.array([Particle.CubeSize, 0, Particle.CubeSize]), np.array([0, -1, 0]), np.array([0, 0, 0])))
-    particle_array.append(Electron(np.array([0, 0, 0 ]), np.array([2, 2, 2]), np.array([0, 0, 0])))
-    particle_array.append(Electron(np.array([0,  Particle.CubeSize/2, 0]), np.array([1, 0, 0]), np.array([0, 0, 0])))
+    particle_array.append(Proton(np.array([Particle.CubeSize - 1e-1, 1e-1, Particle.CubeSize - 1e-1]), np.array([0, 2, 0]), np.array([0, 0, 0])))
+    particle_array.append(Electron(np.array([1e-1, 1e-1, 1e-1 ]), np.array([2, 2, 2]), np.array([0, 0, 0])))
+    particle_array.append(Electron(np.array([1e-1,  Particle.CubeSize/2, 1e-1]), np.array([2, 0, 0]), np.array([0, 0, 0])))
     #Proton(np.array([Particle.CubeSize / 4, Particle.CubeSize / 4, Particle.CubeSize / 4]), np.array([1, 0, 1]), np.array([0, 0, 0]))
 
     s = Simulation(particle_array)
