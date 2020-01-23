@@ -10,7 +10,7 @@ Nbodies = 1
 class Particle(object):
     number_of_particles = 0
     particle_color = []
-    CubeSize = 3
+    CubeSize = 3.0
 
     def __init__(self, pos, vel, accl, radius=0.85e-15):
         self.pos = pos
