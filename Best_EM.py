@@ -3,14 +3,35 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from matplotlib.animation import FuncAnimation
 from scipy import constants as si
+from random import seed
+from random import randint
 
-Nbodies = 1
+"""
+Seed(2) N_Electrons = 3 and N_Protons = 3 Cube = 5 is interesting
 
+I Would advise to have no more than 12 Particle in a cube at once
+"""
+
+
+seed(1) #change number to randomize
+N_Electrons = 4
+N_Protons = 2
+CubeSize = 3
+
+""" 
+Blue represents Electrons 
+Red represents Protons
+It may appear as though the Electrons have no interactions with each other but it is evident that the electrons are 
+interacting with each other when they are slowed down after being accelerated by a protons 
+"""
+
+
+v_0 = np.array([0,0,0]) # probably best to keep them all at rest from the start
+a_0 = np.zeros_like(v_0) # starting acceleration is kinda useless but needed non the less
 
 class Particle(object):
     number_of_particles = 0
     particle_color = []
-    CubeSize = 8
 
     def __init__(self, pos, vel, accl, radius=0.85e-15):
         self.pos = pos
@@ -21,8 +42,8 @@ class Particle(object):
 
     def _r(self, P2):
         r = np.linalg.norm(self.pos - P2.pos)
-        if r == 0:
-            return 1e-14
+        if r <= 8.7e-16: # Using the mass of the proton to simulate a collision to avoid a dividing by zero
+            return 8.7e-16
         return r
 
     def r_hat(self, P2):
@@ -41,16 +62,16 @@ class Particle(object):
         return self.force_columbs(P2) + self.force_magneto(P2)
 
     def boundary_cross_check_and_update(self):  # checks to see if the x ,y z, positions are in the box of dimensionals maxsize
-        if (self.pos[0] < 0 or self.pos[0] > Particle.CubeSize):
-            self.pos[0] = Particle.CubeSize - (self.pos[0] % Particle.CubeSize)
+        if (self.pos[0] < 0 or self.pos[0] > CubeSize):
+            self.pos[0] = CubeSize - (self.pos[0] % CubeSize)
             self.vel[0] = -self.vel[0]
 
-        if (self.pos[1] < 0 or self.pos[1] > Particle.CubeSize):
-            self.pos[1] = Particle.CubeSize - (self.pos[1] % Particle.CubeSize)
+        if (self.pos[1] < 0 or self.pos[1] > CubeSize):
+            self.pos[1] = CubeSize - (self.pos[1] % CubeSize)
             self.vel[1] = -self.vel[1]
 
-        if (self.pos[2] < 0 or self.pos[2] > Particle.CubeSize):
-            self.pos[2] = Particle.CubeSize - (self.pos[2] % Particle.CubeSize)
+        if (self.pos[2] < 0 or self.pos[2] > CubeSize):
+            self.pos[2] = CubeSize - (self.pos[2] % CubeSize)
             self.vel[2] = -self.vel[2]
     def update_accl(self,force):
         self.accl = force / self.mass
@@ -88,14 +109,12 @@ class Proton(Particle):
 
 
 
-class Simulation():#AB
+class Simulation():
     def __init__(self, particles):
         self.particles = particles
-        self.temp = particles
 
-    def step(self, dt=.002):
-        coords = None#AB
-        sum_of_forces_final = []
+    def step(self, dt=9e-4):
+        coords = None
         for p1 in self.particles:
             sum_of_forces = np.zeros_like(p1.pos)
             for p2 in self.particles:
@@ -116,10 +135,25 @@ class Simulation():#AB
 
 def main():
     particle_array=[]
-    particle_array.append(Proton(np.array([Particle.CubeSize/2, Particle.CubeSize/2, Particle.CubeSize/2]), np.array([0, 0, 0]), np.array([0, 0, 0])))
-    particle_array.append(Electron(np.array([1e-1, 1e-1, 1e-1 ]), np.array([0, 0, 0]), np.array([0, 0, 0])))
-    particle_array.append(Electron(np.array([1e-1,  Particle.CubeSize/2, 1e-1]), np.array([2, 0, 0]), np.array([0, 0, 0])))
-    #Proton(np.array([Particle.CubeSize / 4, Particle.CubeSize / 4, Particle.CubeSize / 4]), np.array([1, 0, 1]), np.array([0, 0, 0]))
+
+    for k in range(N_Protons): # Generates randomized Protons
+        if k == 0: # Gurantees a proton in the centre
+            x=y=z = CubeSize/2
+            pos_0 = np.array([x, y, z])
+            particle_array.append(Proton(pos_0, v_0, a_0))
+        else:
+            x = CubeSize * randint(1, N_Protons-1) / (N_Protons+1)
+            y = CubeSize * randint(1, N_Protons-1) / (N_Protons+1)
+            z = CubeSize * randint(1, N_Protons-1) / (N_Protons+1)
+            pos_0 = np.array([x,y,z])
+            particle_array.append(Proton(pos_0, v_0, a_0))
+
+    for k in range(N_Electrons): # Generates randomized Electrons
+        x = CubeSize * randint(0, N_Electrons) / N_Electrons
+        y = CubeSize * randint(0, N_Electrons) / N_Electrons
+        z = CubeSize * randint(0, N_Electrons) / N_Electrons
+        pos_0 = np.array([x, y, z])
+        particle_array.append(Electron(pos_0, v_0, a_0))
 
     s = Simulation(particle_array)
 
@@ -129,9 +163,9 @@ def main():
     plt.xlabel('x')
     plt.ylabel('y')
 
-    ax.set_xlim3d(0, Particle.CubeSize)
-    ax.set_ylim3d(0, Particle.CubeSize)
-    ax.set_zlim3d(0, Particle.CubeSize)
+    ax.set_xlim3d(0, CubeSize)
+    ax.set_ylim3d(0, CubeSize)
+    ax.set_zlim3d(0, CubeSize)
     i = s.step()
     graph = ax.scatter(i[..., 0], i[..., 1], i[..., 2], '.', c=Particle.particle_color)
 
