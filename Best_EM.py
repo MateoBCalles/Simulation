@@ -15,7 +15,7 @@ I Would advise to have no more than 12 Particle in a cube at once
 
 seed(1) #change number to randomize
 N_Electrons = 4
-N_Protons = 2
+N_Protons = 3
 CubeSize = 3
 
 """ 
