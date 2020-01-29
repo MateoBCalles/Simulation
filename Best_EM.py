@@ -17,6 +17,7 @@ seed(1) #change number to randomize
 N_Electrons = 4
 N_Protons = 3
 CubeSize = 3
+Proton_yes = True# If false will create positrons
 
 """ 
 Blue represents Electrons 
@@ -95,13 +96,24 @@ class Electron(Particle):
         self.color = "Blue"
         self.__class__.particle_color.append(self.color)
 
+
 class Proton(Particle):
-    def __init__(self, pos, vel, accl,):
+    def __init__(self, pos, vel, accl, ):
         super(Proton, self).__init__(pos, vel, accl)
         self.type = "Proton"
-        self.mass = si.m_p #change to si.m_e if you want a positron, alot more chaotic
+        self.mass = si.m_p  # change to si.m_e if you want a positron, alot more chaotic
         self.charge = si.e
         self.color = "Red"
+        self.__class__.particle_color.append(self.color)
+
+
+class Positron(Particle):
+    def __init__(self, pos, vel, accl,):
+        super(Positron, self).__init__(pos, vel, accl)
+        self.type = "Proton"
+        self.mass = si.m_e
+        self.charge = si.e
+        self.color = "Orange"
         self.__class__.particle_color.append(self.color)
 
 
@@ -135,18 +147,30 @@ class Simulation():
 
 def main():
     particle_array=[]
-
-    for k in range(N_Protons): # Generates randomized Protons
-        if k == 0: # Gurantees a proton in the centre
-            x=y=z = CubeSize/2
-            pos_0 = np.array([x, y, z])
-            particle_array.append(Proton(pos_0, v_0, a_0))
-        else:
-            x = CubeSize * randint(1, N_Protons-1) / (N_Protons+1)
-            y = CubeSize * randint(1, N_Protons-1) / (N_Protons+1)
-            z = CubeSize * randint(1, N_Protons-1) / (N_Protons+1)
-            pos_0 = np.array([x,y,z])
-            particle_array.append(Proton(pos_0, v_0, a_0))
+    if Proton_yes:
+        for k in range(N_Protons): # Generates randomized Protons
+            if k == 0: # Gurantees a proton in the centre
+                x=y=z = CubeSize/2
+                pos_0 = np.array([x, y, z])
+                particle_array.append(Proton(pos_0, v_0, a_0))
+            else:
+                x = CubeSize * randint(1, N_Protons-1) / (N_Protons+1)
+                y = CubeSize * randint(1, N_Protons-1) / (N_Protons+1)
+                z = CubeSize * randint(1, N_Protons-1) / (N_Protons+1)
+                pos_0 = np.array([x,y,z])
+                particle_array.append(Proton(pos_0, v_0, a_0))
+    else:
+        for k in range(N_Protons): # Generates randomized Protons
+            if k == 0: # Gurantees a proton in the centre
+                x=y=z = CubeSize/2
+                pos_0 = np.array([x, y, z])
+                particle_array.append(Positron(pos_0, v_0, a_0))
+            else:
+                x = CubeSize * randint(1, N_Protons-1) / (N_Protons+1)
+                y = CubeSize * randint(1, N_Protons-1) / (N_Protons+1)
+                z = CubeSize * randint(1, N_Protons-1) / (N_Protons+1)
+                pos_0 = np.array([x,y,z])
+                particle_array.append(Positron(pos_0, v_0, a_0))
 
     for k in range(N_Electrons): # Generates randomized Electrons
         x = CubeSize * randint(0, N_Electrons) / N_Electrons
