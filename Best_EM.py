@@ -13,10 +13,10 @@ I Would advise to have no more than 12 Particle in a cube at once
 """
 
 
-seed(1) #change number to randomize
-N_Electrons = 4
+seed(21) #change number to randomize
+N_Electrons = 3
 N_Protons = 3
-CubeSize = 3
+CubeSize = 5
 Proton_yes = True# If false will create positrons
 
 """ 
@@ -33,17 +33,19 @@ a_0 = np.zeros_like(v_0) # starting acceleration is kinda useless but needed non
 class Particle(object):
     number_of_particles = 0
     particle_color = []
-
+    total_KE = 0
     def __init__(self, pos, vel, accl, radius=0.85e-15):
+        self.mass = None
         self.pos = pos
         self.vel = vel
         self.accl = accl
         self.radius = radius
+        self.KE = 0
         Particle.number_of_particles += 1
 
     def _r(self, P2):
         r = np.linalg.norm(self.pos - P2.pos)
-        if r <= 8.7e-16: # Using the mass of the proton to simulate a collision to avoid a dividing by zero
+        if r <= 8.7e-16: # Using the radius of the proton to simulate a collision to avoid a dividing by zero
             return 8.7e-16
         return r
 
@@ -74,6 +76,7 @@ class Particle(object):
         if (self.pos[2] < 0 or self.pos[2] > CubeSize):
             self.pos[2] = CubeSize - (self.pos[2] % CubeSize)
             self.vel[2] = -self.vel[2]
+
     def update_accl(self,force):
         self.accl = force / self.mass
 
@@ -84,6 +87,7 @@ class Particle(object):
         if self.vel[0] > si.c or self.vel[1] > si.c or self.vel[2] > si.c:
             print("EINSTEIN WAS WRONG")
             self.vel = self.vel/1e9
+        Particle.total_KE += 1/2*self.mass*self.vel**2
 
 
 
@@ -128,14 +132,15 @@ class Simulation():
     def step(self, dt=9e-4):
         coords = None
         for p1 in self.particles:
-            sum_of_forces = np.zeros_like(p1.pos)
+            sum_of_forces = np.zeros_like(p1.pos) # creates a array with the same dimensions as position
             for p2 in self.particles:
-
+            # this for loop is for 1 particle to be updated, p1, it checks every other particle and sums up the forces p1 feels from all the other particles p2
                 if p1 == p2:
                     continue
                 sum_of_forces = np.add(sum_of_forces, p1.force(p2))
-            p1.update_accl(sum_of_forces)
-
+            p1.update_accl(sum_of_forces) #updates p1's acceleraton vector NOT POSITION
+        #now that the acceleration vector of each particle is updated its time to actually move each particle
+        #this ensures that a particles new position doesnt affect another particles from the previous time step
         for p1 in self.particles:
             p1.update_pos(dt)
 
@@ -181,17 +186,18 @@ def main():
 
     s = Simulation(particle_array)
 
-    fig = plt.figure(figsize=(6, 6))
+    fig = plt.figure(1, figsize=(6, 6))
     ax = fig.add_subplot(111, projection='3d')
     ax.set_xticks([]), ax.set_yticks([]), ax.set_zticks([])
     plt.xlabel('x')
     plt.ylabel('y')
-
     ax.set_xlim3d(0, CubeSize)
     ax.set_ylim3d(0, CubeSize)
     ax.set_zlim3d(0, CubeSize)
     i = s.step()
     graph = ax.scatter(i[..., 0], i[..., 1], i[..., 2], '.', c=Particle.particle_color)
+
+
 
     def update(frame_number):
         i = s.step()
